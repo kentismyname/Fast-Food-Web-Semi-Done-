@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shopping Cart</title>
+</head>
+<body>
+    <h1>Shopping Cart</h1>
+    <ul id="cart">
+    </ul>
+
+    <h2>Total: $<span id="total">0</span></h2>
+
+    <button id="checkout-button">Checkout</button>
+
+    <a href="index.html">Back to Products</a>
+
+    <script>
+        // Retrieve cart data from localStorage
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let total = 0;
+
+        function removeFromCart(index) {
+            total -= cart[index].price;
+            cart.splice(index, 1);
+            // Update cart data in localStorage
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartList = document.getElementById("cart");
+            const totalDisplay = document.getElementById("total");
+            total = 0;
+            cartList.innerHTML = "";
+            cart.forEach((item, index) => {
+                const listItem = document.createElement("li");
+                listItem.textContent = `${item.name} - $${item.price}`;
+                const removeButton = document.createElement("button");
+                removeButton.textContent = "Remove";
+                removeButton.onclick = () => removeFromCart(index);
+                listItem.appendChild(removeButton);
+                cartList.appendChild(listItem);
+                total += item.price;
+            });
+            totalDisplay.textContent = total;
+        }
+
+        document.querySelector('#checkout-button').addEventListener('click', () => {
+            // Replace 'YOUR_BOT_TOKEN' and 'YOUR_CHAT_ID' with your bot's token and chat ID.
+            const botToken = '6389554681:AAGT9sb4A0eZyJy7278m02iJCixoRVE2inU';
+            const chatId = '-1001854100823';
+
+             // Calculate the total
+            let total = 0;
+            cart.forEach((item) => {
+            total += item.price;
+            });
+
+            // Create a message with the cart list.
+            let message = 'Order List:\n';
+    cart.forEach((item, index) => {
+        message += `${index + 1}. ${item.name} - $${item.price}\n`;
+    });
+    message += `Total: $${total}`;
+
+
+            // Send the message to your Telegram channel using the Telegram Bot API.
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: message }),
+            }).then((response) => {
+                if (response.ok) {
+                    cart = [];
+                    localStorage.removeItem('cart');
+                    alert('Cart list sent to Telegram.');
+                    updateCartDisplay();
+                    
+
+                } else {
+                    alert('Error sending cart list to Telegram.');
+                }
+            });
+        });
+
+        updateCartDisplay();
+    </script>
+</body>
+</html>
